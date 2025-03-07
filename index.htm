@@ -11,30 +11,13 @@
         #componentiContainer { margin-top: 15px; }
         .componente { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
         button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        /* Stile non più necessario, gestito via JS
         button[type="submit"]:disabled { background-color: #cccccc; cursor: not-allowed; }
-        */
-        #messaggioInvio { margin-top: 10px; padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: none; } /* Inizialmente nascosto */
-
-        /* Stile per il messaggio di ringraziamento (opzionale, puoi personalizzarlo) */
-        #grazie {
-            margin-top: 20px;
-            padding: 20px;
-            border: 2px solid #28a745; /* Bordo verde */
-            background-color: #f8f9fa; /* Sfondo leggermente grigio */
-            text-align: center; /* Centra il testo */
-            font-size: 1.2em; /* Aumenta la dimensione del testo */
-            display: none; /* Inizialmente nascosto */
-        }
-        #grazie h2 {
-          color: #28a745; /* Colore verde per l'intestazione */
-        }
-
+        #messaggioInvio { margin-top: 10px; padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: none; }
     </style>
 </head>
 <body>
 
-    <form id="iscrizioneForm" action="https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec" method="POST">
+    <form id="iscrizioneForm" action="#" method="post">
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
 
@@ -48,7 +31,6 @@
         <select id="numComponenti" name="numComponenti" required>
             <option value="" disabled selected>Seleziona...</option>
             <script>
-                // Generazione dinamica delle opzioni (1-15)
                 for (let i = 1; i <= 15; i++) {
                     document.write(`<option value="${i}">${i}</option>`);
                 }
@@ -58,28 +40,19 @@
         <div id="componentiContainer"></div>
 
         <button type="submit" id="submitButton">Invia Iscrizione</button>
-         </form>
-
-      <div id="grazie" style="display: none;">
-        <h2>Grazie per la tua partecipazione!</h2>
-    </div>
-
+        <div id="messaggioInvio">Risposta Inviata!</div>
+    </form>
 
     <script>
-        // Ottieni riferimenti agli elementi del DOM
         const numComponentiSelect = document.getElementById('numComponenti');
         const componentiContainer = document.getElementById('componentiContainer');
         const form = document.getElementById('iscrizioneForm');
-        const submitButton = document.getElementById('submitButton'); // Non più usato direttamente, ma utile per la validazione
-      //  const messaggioInvio = document.getElementById('messaggioInvio'); //Non più utilizzato
-        const grazieDiv = document.getElementById('grazie');
+        const submitButton = document.getElementById('submitButton');
+        const messaggioInvio = document.getElementById('messaggioInvio');
 
-
-
-        // Gestione dell'evento 'change' del menu a tendina del numero di componenti
         numComponentiSelect.addEventListener('change', function() {
             const numComponenti = parseInt(this.value);
-            componentiContainer.innerHTML = ''; // Pulisci i campi precedenti
+            componentiContainer.innerHTML = ''; // Pulisci
 
             for (let i = 1; i <= numComponenti; i++) {
                 const componenteDiv = document.createElement('div');
@@ -136,51 +109,46 @@
             }
         });
 
+        form.addEventListener("submit", function(event) {
+            event.preventDefault();
 
-
-    form.addEventListener("submit", function(event) {
-        // 1.  VALIDAZIONE (lato client - importante mantenerla!)
-        const formData = new FormData(form);
-        const data = {};
-        for (const [key, value] of formData.entries()) {
-            data[key] = value;
-        }
-        if (!data.nome || !data.cognome || !data.email || !data.numComponenti) {
-            alert("Per favore, compila tutti i campi obbligatori principali.");
-            event.preventDefault(); // Impedisci l'invio se la validazione fallisce
-            return;
-        }
-        const numComponenti = parseInt(data.numComponenti);
-        for (let i = 1; i <= numComponenti; i++) {
-            if (numComponenti > 1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
-                alert(`Per favore, compila nome e cognome per il componente ${i}.`);
-                event.preventDefault(); // Impedisci l'invio
-                return;
+            const formData = new FormData(form);
+            const data = {};
+            for (const [key, value] of formData.entries()) {
+                data[key] = value;
             }
-            if (!data[`menuComponente${i}`] || !data[`regimeComponente${i}`]) {
-                alert(`Per favore, seleziona menù e regime alimentare per il componente ${i}.`);
-                event.preventDefault(); // Impedisci l'invio
-                return;
-            }
-        }
 
+            // Invio dati
+            fetch('https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec', {
+                method: 'POST',
+                body: formData,
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Errore HTTP: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                console.log('Success:', data);
+                if (data.result === 'success') {
+                    // Mostra il messaggio e disabilita il pulsante
+                    messaggioInvio.style.display = 'block';
+                    submitButton.disabled = true;
+                    submitButton.style.cursor = 'not-allowed';
 
-        // 2.  Se la validazione passa:
-        //     - NON facciamo più fetch()
-        //     - Nascondiamo il form
-        //     - Mostriamo il messaggio
-
-        //event.preventDefault(); // RIMUOVI QUESTA RIGA per consentire l'invio standard!
-
-        //Spostato dopo l'invio standard
-        //form.style.display = 'none';  // Nascondi il form
-        //grazieDiv.style.display = 'block'; // Mostra il messaggio di ringraziamento
-
-        //Il submit del form ora avviene in modo *standard* (senza JS).
-        // La pagina si ricaricherà.
-    });
-
-
+                    // Resetta il form e svuota il container
+                    form.reset();
+                    componentiContainer.innerHTML = "";
+                } else {
+                    alert("Errore nell'invio: " + data.error);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert("Errore nell'invio dei dati: " + error.message);
+            });
+        });
     </script>
 
 </body>
