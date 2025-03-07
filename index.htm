@@ -136,15 +136,33 @@
                     return;
                 }
             }
+fetch('https://script.google.com/macros/s/AKfycbw0APMD51NBt3Fl_DY2e5qIUt1UgiQkBRwYS5rpQsok6rjnsgX3EIEAf2cqkoIXSopivg/exec', { // <-- URL con /exec!
+    method: 'POST',
+    // NON impostare Content-Type.  Google Apps Script gestisce il FormData.
+    body: formData, // Invia direttamente il FormData
+})
+.then(response => {
+    if (!response.ok) {
+        throw new Error(`Errore HTTP: ${response.status}`);
+    }
+    return response.json();
+})
+.then(data => {
+    console.log('Success:', data);
+    if (data.result === 'success') {
+        alert("Dati inviati con successo!");
+    } else {
+        alert("Errore nell'invio: " + data.error); // Mostra l'errore specifico
+    }
+    form.reset();
+    componentiContainer.innerHTML = "";
+})
+.catch((error) => {
+    console.error('Error:', error);
+    alert("Errore nell'invio dei dati: " + error.message);
+});
 
-
-            // Simulazione invio
-            console.log("Dati pronti per l'invio:", data);
-            alert("Dati inviati con successo (simulazione). Controlla la console.");
-
-            // Reset (opzionale)
-            form.reset();
-            componentiContainer.innerHTML = "";
+           
         });
 
     </script>
