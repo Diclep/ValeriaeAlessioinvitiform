@@ -142,7 +142,7 @@
 
             // 3. INVIO DEI DATI (con fetch())
             const formData = new FormData(form);
-            fetch('https://script.google.com/macros/s/AKfycbyZbbjW-3wGtYZYYZ2FlNkiu52kSH33s8AdN9fMOGJU5oG87LIM7wxWZiPv8y4w5Nvpaw/exec', { // <-- URL CORRETTO!
+            fetch('https://script.google.com/macros/s/AKfycbyZbbjW-3wGtYZYYZ2FlNkiu52kSH33s8AdN9fMOGJU5oG87LIM7wxWZiPv8y4w5Nvpaw/exec', { mode: 'no-cors'} { // <-- URL CORRETTO!
                 method: 'POST',
                 body: formData,
             })
