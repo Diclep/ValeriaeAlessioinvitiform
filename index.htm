@@ -14,14 +14,14 @@
 
         /* Messaggio di ringraziamento */
         #grazie {
-            margin-top: 20px; /* Aggiunto margine superiore */
+            margin-top: 20px;
             padding: 20px;
-            border: 2px solid #28a745; /* Bordo per evidenziare */
-            background-color: #f8f9fa; /* Sfondo leggero */
+            border: 2px solid #28a745;
+            background-color: #f8f9fa;
             text-align: center;
             font-size: 1.2em;
             color: #28a745;
-            display: none; /* Nascosto all'inizio */
+            display: none; /* Inizialmente nascosto */
         }
         #grazie h2{
           color:#28a745;
@@ -67,7 +67,7 @@
         const submitButton = document.getElementById('submitButton');
         const grazieDiv = document.getElementById('grazie');
 
-        // Generazione dinamica dei campi (rimane invariata)
+        // Generazione dinamica dei campi
         numComponentiSelect.addEventListener('change', function() {
             const numComponenti = parseInt(this.value);
             componentiContainer.innerHTML = ''; // Pulisci i campi precedenti
@@ -129,20 +129,20 @@
 
         // Gestione dell'invio del form
         form.addEventListener("submit", function(event) {
-            event.preventDefault(); // Impedisce l'invio *standard* del form
+            event.preventDefault(); // Impedisce l'invio standard
 
-            // 1. VALIDAZIONE (lato client)
+            // 1. VALIDAZIONE
             if (!validaForm()) {
-                return; // Se la validazione fallisce, esci
+                return; // Esci se la validazione fallisce
             }
 
-            // 2. NASCONDI IL FORM E MOSTRA IL MESSAGGIO *PRIMA* DELL'INVIO
+            // 2. NASCONDI FORM E MOSTRA MESSAGGIO
             form.style.display = 'none';
             grazieDiv.style.display = 'block';
 
             // 3. INVIO DEI DATI (con fetch())
             const formData = new FormData(form);
-            fetch('https://script.google.com/macros/s/AKfycbyZbbjW-3wGtYZYYZ2FlNkiu52kSH33s8AdN9fMOGJU5oG87LIM7wxWZiPv8y4w5Nvpaw/exec', { mode: 'no-cors'} { // <-- URL CORRETTO!
+            fetch('https://script.google.com/macros/s/AKfycbwKXVgIr9iuiAFvjrFjgX6JK_AGVuQFoev8bbHiSUoYaKgIhfHb2KUdXOFR0VkzWPmiCw/exec', { // URL corretto
                 method: 'POST',
                 body: formData,
             })
@@ -154,19 +154,19 @@
             })
             .then(data => {
                 console.log('Success:', data);
-                if (data.result !== 'success') {
+                 if (data.result !== 'success') {
                       alert("Errore nell'invio al server: " + data.error + ".  I dati *NON* sono stati salvati.");
                 }
             })
             .catch((error) => {
                 console.error('Error:', error);
-                alert("Errore nell'invio dei dati: " + error.message + ". I dati *NON* sono stati salvati.");
+                alert("Errore nell'invio: " + error.message + ". I dati *NON* sono stati salvati.");
             });
         });
 
-        // Funzione di validazione (separata per chiarezza)
+        // Funzione di validazione
         function validaForm() {
-            const formData = new FormData(form);
+             const formData = new FormData(form);
             const data = {};
             for (const [key, value] of formData.entries()) {
                 data[key] = value;
@@ -181,7 +181,7 @@
             const numComponenti = parseInt(data.numComponenti);
             for (let i = 1; i <= numComponenti; i++) {
                 // Controlla nome/cognome per componenti > 1
-                if (numComponenti > 1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
+                if (i>1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
                     alert(`Per favore, compila nome e cognome per il componente ${i}.`);
                     return false;
                 }
