@@ -10,14 +10,14 @@
         input[type="text"], input[type="email"], select { width: 100%; padding: 5px; margin-bottom: 5px; box-sizing: border-box; }
         #componentiContainer { margin-top: 15px; }
         .componente { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
-        button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: red; border: none; cursor: pointer; }
-        button[type="submit"]:disabled { background-color: #cccccc; cursor: not-allowed; }
+        button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        /* Non più necessario lo stile per :disabled */
         #messaggioInvio { margin-top: 10px; padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: none; }
     </style>
 </head>
 <body>
 
-    <form id="iscrizioneForm" action="#" method="post">
+    <form id="iscrizioneForm" action="https://script.google.com/macros/s/AKfycbxpVzuiQzOPofKlcVfpMDfvYJ4NCgnbDQm0YaqY0KB08nNoziQXD60of8URakostbsiig/exec" method="POST">
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
 
@@ -40,115 +40,122 @@
         <div id="componentiContainer"></div>
 
         <button type="submit" id="submitButton">Invia Iscrizione</button>
-        <div id="messaggioInvio">Risposta Inviata!</div>
+        <div id="messaggioInvio">Partecipazione Inviata!</div>
     </form>
+  <div id="grazie" style="display: none;">
+    <h2>Grazie per la tua partecipazione!</h2>
+    </div>
 
     <script>
-        const numComponentiSelect = document.getElementById('numComponenti');
-        const componentiContainer = document.getElementById('componentiContainer');
-        const form = document.getElementById('iscrizioneForm');
-        const submitButton = document.getElementById('submitButton');
-        const messaggioInvio = document.getElementById('messaggioInvio');
+      const numComponentiSelect = document.getElementById('numComponenti');
+    const componentiContainer = document.getElementById('componentiContainer');
+    const form = document.getElementById('iscrizioneForm');
+    const submitButton = document.getElementById('submitButton'); //più necessario, ma lo teniamo per validazione
+    const messaggioInvio = document.getElementById('messaggioInvio');//più necessario
+    const grazieDiv = document.getElementById('grazie');
 
-        numComponentiSelect.addEventListener('change', function() {
-            const numComponenti = parseInt(this.value);
-            componentiContainer.innerHTML = ''; // Pulisci
 
-            for (let i = 1; i <= numComponenti; i++) {
-                const componenteDiv = document.createElement('div');
-                componenteDiv.classList.add('componente');
+    //Generazione campi dinamica
+    numComponentiSelect.addEventListener('change', function() {
+        const numComponenti = parseInt(this.value);
+        componentiContainer.innerHTML = ''; // Pulisci
 
-                let componenteHTML = `<h3>Componente ${i}</h3>`;
+        for (let i = 1; i <= numComponenti; i++) {
+            const componenteDiv = document.createElement('div');
+            componenteDiv.classList.add('componente');
 
-                // Nome e Cognome: Solo per componenti > 1
-                if (i > 1) {
-                    componenteHTML += `
-                        <label for="nomeComponente${i}">Nome Componente ${i}:</label>
-                        <input type="text" id="nomeComponente${i}" name="nomeComponente${i}" required>
+            let componenteHTML = `<h3>Componente ${i}</h3>`;
 
-                        <label for="cognomeComponente${i}">Cognome Componente ${i}:</label>
-                        <input type="text" id="cognomeComponente${i}" name="cognomeComponente${i}" required>
-                    `;
-                }
-
-                // Menu a tendina "Scegli Menù"
+            // Nome e Cognome: Solo per componenti > 1
+            if (i > 1) {
                 componenteHTML += `
-                    <label for="menuComponente${i}">Scegli Menù:</label>
-                    <select id="menuComponente${i}" name="menuComponente${i}" required>
-                        <option value="" disabled selected>Seleziona...</option>
-                        <option value="adulto">Menù Adulti</option>
-                        <option value="bambino">Menù Bambino</option>
-                        <option value="solo_sedia">Solo sedia (no pranzo)</option>
-                        <option value="seggiolone">Seggiolone (no pranzo)</option>
-                        <option value="neonato">Neonato &lt; 1 anno</option>
-                    </select>
+                    <label for="nomeComponente${i}">Nome Componente ${i}:</label>
+                    <input type="text" id="nomeComponente${i}" name="nomeComponente${i}" required>
+
+                    <label for="cognomeComponente${i}">Cognome Componente ${i}:</label>
+                    <input type="text" id="cognomeComponente${i}" name="cognomeComponente${i}" required>
                 `;
-
-                // Menu a tendina "Regime Alimentare"
-                componenteHTML += `
-                    <label for="regimeComponente${i}">Regime Alimentare:</label>
-                    <select id="regimeComponente${i}" name="regimeComponente${i}" required>
-                        <option value="" disabled selected>Seleziona...</option>
-                        <option value="tutto">Tutto</option>
-                        <option value="vegetariano">Vegetariano</option>
-                        <option value="vegano">Vegano</option>
-                        <option value="no_pesce">No pesce</option>
-                        <option value="no_lattosio">No lattosio</option>
-                        <option value="no_glutine">No glutine</option>
-                    </select>
-                `;
-
-                // Textbox facoltativa "Allergie"
-                componenteHTML += `
-                    <label for="allergieComponente${i}">Indicare eventuali allergie (facoltativo):</label>
-                    <input type="text" id="allergieComponente${i}" name="allergieComponente${i}">
-                `;
-
-                componenteDiv.innerHTML = componenteHTML;
-                componentiContainer.appendChild(componenteDiv);
-            }
-        });
-
-        form.addEventListener("submit", function(event) {
-            event.preventDefault();
-
-            const formData = new FormData(form);
-            const data = {};
-            for (const [key, value] of formData.entries()) {
-                data[key] = value;
             }
 
-            // Invio dati
-            fetch('https://script.google.com/macros/s/AKfycbxpVzuiQzOPofKlcVfpMDfvYJ4NCgnbDQm0YaqY0KB08nNoziQXD60of8URakostbsiig/exec', {
-                method: 'POST',
-                body: formData,
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Errore HTTP: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Success:', data);
-                if (data.result === 'success') {
-                    // Mostra il messaggio e disabilita il pulsante
-                    messaggioInvio.style.display = 'block';
-                    submitButton.disabled = true;
-                    submitButton.style.cursor = 'not-allowed';
+            // Menu a tendina "Scegli Menù"
+            componenteHTML += `
+                <label for="menuComponente${i}">Scegli Menù:</label>
+                <select id="menuComponente${i}" name="menuComponente${i}" required>
+                    <option value="" disabled selected>Seleziona...</option>
+                    <option value="adulto">Menù Adulti</option>
+                    <option value="bambino">Menù Bambino</option>
+                    <option value="solo_sedia">Solo sedia (no pranzo)</option>
+                    <option value="seggiolone">Seggiolone (no pranzo)</option>
+                    <option value="neonato">Neonato &lt; 1 anno</option>
+                </select>
+            `;
 
-                    // Resetta il form e svuota il container
-                    form.reset();
-                    componentiContainer.innerHTML = "";
-                } else {
-                    alert("Errore nell'invio: " + data.error);
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert("Errore nell'invio dei dati: " + error.message);
-            });
-        });
+            // Menu a tendina "Regime Alimentare"
+            componenteHTML += `
+                <label for="regimeComponente${i}">Regime Alimentare:</label>
+                <select id="regimeComponente${i}" name="regimeComponente${i}" required>
+                    <option value="" disabled selected>Seleziona...</option>
+                    <option value="tutto">Tutto</option>
+                    <option value="vegetariano">Vegetariano</option>
+                    <option value="vegano">Vegano</option>
+                    <option value="no_pesce">No pesce</option>
+                    <option value="no_lattosio">No lattosio</option>
+                    <option value="no_glutine">No glutine</option>
+                </select>
+            `;
+
+            // Textbox facoltativa "Allergie"
+            componenteHTML += `
+                <label for="allergieComponente${i}">Indicare eventuali allergie (facoltativo):</label>
+                <input type="text" id="allergieComponente${i}" name="allergieComponente${i}">
+            `;
+
+            componenteDiv.innerHTML = componenteHTML;
+            componentiContainer.appendChild(componenteDiv);
+        }
+    });
+
+
+
+    form.addEventListener("submit", function(event) {
+        // 1.  VALIDAZIONE (lato client - importante mantenerla!)
+        const formData = new FormData(form);
+        const data = {};
+        for (const [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        if (!data.nome || !data.cognome || !data.email || !data.numComponenti) {
+            alert("Per favore, compila tutti i campi obbligatori principali.");
+            event.preventDefault(); // Impedisci l'invio se la validazione fallisce
+            return;
+        }
+        const numComponenti = parseInt(data.numComponenti);
+        for (let i = 1; i <= numComponenti; i++) {
+            if (numComponenti > 1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
+                alert(`Per favore, compila nome e cognome per il componente ${i}.`);
+                event.preventDefault(); // Impedisci l'invio
+                return;
+            }
+            if (!data[`menuComponente${i}`] || !data[`regimeComponente${i}`]) {
+                alert(`Per favore, seleziona menù e regime alimentare per il componente ${i}.`);
+                event.preventDefault(); // Impedisci l'invio
+                return;
+            }
+        }
+
+        // 2.  Se la validazione passa:
+        //     - NON facciamo più fetch()
+        //     - Nascondiamo il form
+        //     - Mostriamo il messaggio
+
+        event.preventDefault(); //temporaneo, per vedere il messaggio
+        form.style.display = 'none'; // Nascondi il form
+        grazieDiv.style.display = 'block'; // Mostra il messaggio di ringraziamento.
+
+
+        //Il submit del form ora avviene in modo *standard* (senza JS)
+    });
+
     </script>
 
 </body>
