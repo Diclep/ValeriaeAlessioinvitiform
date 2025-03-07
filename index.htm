@@ -11,12 +11,13 @@
         #componentiContainer { margin-top: 15px; }
         .componente { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
         button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+        button[type="submit"]:disabled { background-color: #cccccc; cursor: not-allowed; } /* Stile pulsante disabilitato */
+        #messaggioInvio { margin-top: 10px; padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: none; } /* Stile messaggio */
     </style>
 </head>
 <body>
 
-    <form id="iscrizioneForm" action="tuo_script_lato_server.php" method="post">
-        <label for="nome">Nome:</label>
+    <form id="iscrizioneForm" action="#" method="post">  <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
 
         <label for="cognome">Cognome:</label>
@@ -37,13 +38,14 @@
 
         <div id="componentiContainer"></div>
 
-        <button type="submit">Invia Iscrizione</button>
-    </form>
+        <button type="submit" id="submitButton">Invia Iscrizione</button>  <div id="messaggioInvio">Risposta Inviata!</div>  </form>
 
     <script>
         const numComponentiSelect = document.getElementById('numComponenti');
         const componentiContainer = document.getElementById('componentiContainer');
         const form = document.getElementById('iscrizioneForm');
+        const submitButton = document.getElementById('submitButton'); // Riferimento al pulsante
+        const messaggioInvio = document.getElementById('messaggioInvio'); // Riferimento al messaggio
 
         numComponentiSelect.addEventListener('change', function() {
             const numComponenti = parseInt(this.value);
@@ -55,13 +57,13 @@
 
                 let componenteHTML = `<h3>Componente ${i}</h3>`;
 
-                // Se numComponenti > 1, aggiungi nome e cognome
-                if (numComponenti > 1) {
+                // Nome e Cognome: Solo per componenti > 1
+                if (i > 1) {  // <--- MODIFICA QUI: i > 1
                     componenteHTML += `
-                        <label for="nomeComponente${i}">Nome:</label>
+                        <label for="nomeComponente${i}">Nome Componente ${i}:</label>
                         <input type="text" id="nomeComponente${i}" name="nomeComponente${i}" required>
 
-                        <label for="cognomeComponente${i}">Cognome:</label>
+                        <label for="cognomeComponente${i}">Cognome Componente ${i}:</label>
                         <input type="text" id="cognomeComponente${i}" name="cognomeComponente${i}" required>
                     `;
                 }
@@ -105,65 +107,53 @@
         });
 
 
-        form.addEventListener("submit", function(event) {
-            event.preventDefault();
+      form.addEventListener("submit", function(event) {
+        event.preventDefault();
 
-            // Raccolta dati (ora include menu e allergie)
-            const formData = new FormData(form);
-            const data = {};
-            for (const [key, value] of formData.entries()) {
-                data[key] = value;
+        const formData = new FormData(form);
+        const data = {};
+        for (const [key, value] of formData.entries()) {
+            data[key] = value;
+        }
+        //console.log("Dati raccolti:", data); // Debug
+
+        // Invio dati
+        fetch('https://script.google.com/macros/s/AKfycbw0APMD51NBt3Fl_DY2e5qIUt1UgiQkBRwYS5rpQsok6rjnsgX3EIEAf2cqkoIXSopivg/exec', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Errore HTTP: ${response.status}`);
             }
-            console.log(data);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            if (data.result === 'success') {
+                //alert("Dati inviati con successo!"); // <-- RIMOSSO
 
-            // Validazione (adattata)
-            if (!data.nome || !data.cognome || !data.email || !data.numComponenti) {
-                alert("Per favore, compila tutti i campi obbligatori principali.");
-                return;
+                // Mostra il messaggio
+                messaggioInvio.style.display = 'block';
+
+                // Disabilita il pulsante
+                submitButton.disabled = true;
+
+
+            } else {
+                alert("Errore nell'invio: " + data.error);
             }
 
-            const numComponenti = parseInt(data.numComponenti);
-            for (let i = 1; i <= numComponenti; i++) {
-                // Se > 1 componente, valida nome/cognome
-                if (numComponenti > 1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
-                    alert(`Per favore, compila nome e cognome per il componente ${i}.`);
-                    return;
-                }
+          //Spostato dentro all'if per evitare che il form venga resettato prima dell'invio
+            form.reset();
+            componentiContainer.innerHTML = "";
 
-                // Valida menu e regime per *ogni* componente
-                if (!data[`menuComponente${i}`] || !data[`regimeComponente${i}`]) {
-                    alert(`Per favore, seleziona menù e regime alimentare per il componente ${i}.`);
-                    return;
-                }
-            }
-fetch('https://script.google.com/macros/s/AKfycbw0APMD51NBt3Fl_DY2e5qIUt1UgiQkBRwYS5rpQsok6rjnsgX3EIEAf2cqkoIXSopivg/exec', { // <-- URL con /exec!
-    method: 'POST',
-    // NON impostare Content-Type.  Google Apps Script gestisce il FormData.
-    body: formData, // Invia direttamente il FormData
-})
-.then(response => {
-    if (!response.ok) {
-        throw new Error(`Errore HTTP: ${response.status}`);
-    }
-    return response.json();
-})
-.then(data => {
-    console.log('Success:', data);
-    if (data.result === 'success') {
-        alert("Dati inviati con successo!");
-    } else {
-        alert("Errore nell'invio: " + data.error); // Mostra l'errore specifico
-    }
-    form.reset();
-    componentiContainer.innerHTML = "";
-})
-.catch((error) => {
-    console.error('Error:', error);
-    alert("Errore nell'invio dei dati: " + error.message);
-});
-
-           
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert("Errore nell'invio dei dati: " + error.message);
         });
+      });
 
     </script>
 
