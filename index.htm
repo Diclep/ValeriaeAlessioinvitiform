@@ -11,13 +11,30 @@
         #componentiContainer { margin-top: 15px; }
         .componente { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
         button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        /* Non più necessario lo stile per :disabled */
-        #messaggioInvio { margin-top: 10px; padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: none; }
+        /* Stile non più necessario, gestito via JS
+        button[type="submit"]:disabled { background-color: #cccccc; cursor: not-allowed; }
+        */
+        #messaggioInvio { margin-top: 10px; padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: none; } /* Inizialmente nascosto */
+
+        /* Stile per il messaggio di ringraziamento (opzionale, puoi personalizzarlo) */
+        #grazie {
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid #28a745; /* Bordo verde */
+            background-color: #f8f9fa; /* Sfondo leggermente grigio */
+            text-align: center; /* Centra il testo */
+            font-size: 1.2em; /* Aumenta la dimensione del testo */
+            display: none; /* Inizialmente nascosto */
+        }
+        #grazie h2 {
+          color: #28a745; /* Colore verde per l'intestazione */
+        }
+
     </style>
 </head>
 <body>
 
-    <form id="iscrizioneForm" action="https://script.google.com/macros/s/AKfycbxpVzuiQzOPofKlcVfpMDfvYJ4NCgnbDQm0YaqY0KB08nNoziQXD60of8URakostbsiig/exec" method="POST">
+    <form id="iscrizioneForm" action="INCOLLA_QUI_L_URL_DELLA_TUA_APP_WEB/exec" method="POST">
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
 
@@ -31,6 +48,7 @@
         <select id="numComponenti" name="numComponenti" required>
             <option value="" disabled selected>Seleziona...</option>
             <script>
+                // Generazione dinamica delle opzioni (1-15)
                 for (let i = 1; i <= 15; i++) {
                     document.write(`<option value="${i}">${i}</option>`);
                 }
@@ -40,80 +58,83 @@
         <div id="componentiContainer"></div>
 
         <button type="submit" id="submitButton">Invia Iscrizione</button>
-        <div id="messaggioInvio">Partecipazione Inviata!</div>
-    </form>
-  <div id="grazie" style="display: none;">
-    <h2>Grazie per la tua partecipazione!</h2>
+         </form>
+
+      <div id="grazie" style="display: none;">
+        <h2>Grazie per la tua partecipazione!</h2>
     </div>
 
+
     <script>
-      const numComponentiSelect = document.getElementById('numComponenti');
-    const componentiContainer = document.getElementById('componentiContainer');
-    const form = document.getElementById('iscrizioneForm');
-    const submitButton = document.getElementById('submitButton'); //più necessario, ma lo teniamo per validazione
-    const messaggioInvio = document.getElementById('messaggioInvio');//più necessario
-    const grazieDiv = document.getElementById('grazie');
+        // Ottieni riferimenti agli elementi del DOM
+        const numComponentiSelect = document.getElementById('numComponenti');
+        const componentiContainer = document.getElementById('componentiContainer');
+        const form = document.getElementById('iscrizioneForm');
+        const submitButton = document.getElementById('submitButton'); // Non più usato direttamente, ma utile per la validazione
+      //  const messaggioInvio = document.getElementById('messaggioInvio'); //Non più utilizzato
+        const grazieDiv = document.getElementById('grazie');
 
 
-    //Generazione campi dinamica
-    numComponentiSelect.addEventListener('change', function() {
-        const numComponenti = parseInt(this.value);
-        componentiContainer.innerHTML = ''; // Pulisci
 
-        for (let i = 1; i <= numComponenti; i++) {
-            const componenteDiv = document.createElement('div');
-            componenteDiv.classList.add('componente');
+        // Gestione dell'evento 'change' del menu a tendina del numero di componenti
+        numComponentiSelect.addEventListener('change', function() {
+            const numComponenti = parseInt(this.value);
+            componentiContainer.innerHTML = ''; // Pulisci i campi precedenti
 
-            let componenteHTML = `<h3>Componente ${i}</h3>`;
+            for (let i = 1; i <= numComponenti; i++) {
+                const componenteDiv = document.createElement('div');
+                componenteDiv.classList.add('componente');
 
-            // Nome e Cognome: Solo per componenti > 1
-            if (i > 1) {
+                let componenteHTML = `<h3>Componente ${i}</h3>`;
+
+                // Nome e Cognome: Solo per componenti > 1
+                if (i > 1) {
+                    componenteHTML += `
+                        <label for="nomeComponente${i}">Nome Componente ${i}:</label>
+                        <input type="text" id="nomeComponente${i}" name="nomeComponente${i}" required>
+
+                        <label for="cognomeComponente${i}">Cognome Componente ${i}:</label>
+                        <input type="text" id="cognomeComponente${i}" name="cognomeComponente${i}" required>
+                    `;
+                }
+
+                // Menu a tendina "Scegli Menù"
                 componenteHTML += `
-                    <label for="nomeComponente${i}">Nome Componente ${i}:</label>
-                    <input type="text" id="nomeComponente${i}" name="nomeComponente${i}" required>
-
-                    <label for="cognomeComponente${i}">Cognome Componente ${i}:</label>
-                    <input type="text" id="cognomeComponente${i}" name="cognomeComponente${i}" required>
+                    <label for="menuComponente${i}">Scegli Menù:</label>
+                    <select id="menuComponente${i}" name="menuComponente${i}" required>
+                        <option value="" disabled selected>Seleziona...</option>
+                        <option value="adulto">Menù Adulti</option>
+                        <option value="bambino">Menù Bambino</option>
+                        <option value="solo_sedia">Solo sedia (no pranzo)</option>
+                        <option value="seggiolone">Seggiolone (no pranzo)</option>
+                        <option value="neonato">Neonato &lt; 1 anno</option>
+                    </select>
                 `;
+
+                // Menu a tendina "Regime Alimentare"
+                componenteHTML += `
+                    <label for="regimeComponente${i}">Regime Alimentare:</label>
+                    <select id="regimeComponente${i}" name="regimeComponente${i}" required>
+                        <option value="" disabled selected>Seleziona...</option>
+                        <option value="tutto">Tutto</option>
+                        <option value="vegetariano">Vegetariano</option>
+                        <option value="vegano">Vegano</option>
+                        <option value="no_pesce">No pesce</option>
+                        <option value="no_lattosio">No lattosio</option>
+                        <option value="no_glutine">No glutine</option>
+                    </select>
+                `;
+
+                // Textbox facoltativa "Allergie"
+                componenteHTML += `
+                    <label for="allergieComponente${i}">Indicare eventuali allergie (facoltativo):</label>
+                    <input type="text" id="allergieComponente${i}" name="allergieComponente${i}">
+                `;
+
+                componenteDiv.innerHTML = componenteHTML;
+                componentiContainer.appendChild(componenteDiv);
             }
-
-            // Menu a tendina "Scegli Menù"
-            componenteHTML += `
-                <label for="menuComponente${i}">Scegli Menù:</label>
-                <select id="menuComponente${i}" name="menuComponente${i}" required>
-                    <option value="" disabled selected>Seleziona...</option>
-                    <option value="adulto">Menù Adulti</option>
-                    <option value="bambino">Menù Bambino</option>
-                    <option value="solo_sedia">Solo sedia (no pranzo)</option>
-                    <option value="seggiolone">Seggiolone (no pranzo)</option>
-                    <option value="neonato">Neonato &lt; 1 anno</option>
-                </select>
-            `;
-
-            // Menu a tendina "Regime Alimentare"
-            componenteHTML += `
-                <label for="regimeComponente${i}">Regime Alimentare:</label>
-                <select id="regimeComponente${i}" name="regimeComponente${i}" required>
-                    <option value="" disabled selected>Seleziona...</option>
-                    <option value="tutto">Tutto</option>
-                    <option value="vegetariano">Vegetariano</option>
-                    <option value="vegano">Vegano</option>
-                    <option value="no_pesce">No pesce</option>
-                    <option value="no_lattosio">No lattosio</option>
-                    <option value="no_glutine">No glutine</option>
-                </select>
-            `;
-
-            // Textbox facoltativa "Allergie"
-            componenteHTML += `
-                <label for="allergieComponente${i}">Indicare eventuali allergie (facoltativo):</label>
-                <input type="text" id="allergieComponente${i}" name="allergieComponente${i}">
-            `;
-
-            componenteDiv.innerHTML = componenteHTML;
-            componentiContainer.appendChild(componenteDiv);
-        }
-    });
+        });
 
 
 
@@ -143,18 +164,22 @@
             }
         }
 
+
         // 2.  Se la validazione passa:
         //     - NON facciamo più fetch()
         //     - Nascondiamo il form
         //     - Mostriamo il messaggio
 
-        event.preventDefault(); //temporaneo, per vedere il messaggio
-        form.style.display = 'none'; // Nascondi il form
-        grazieDiv.style.display = 'block'; // Mostra il messaggio di ringraziamento.
+        //event.preventDefault(); // RIMUOVI QUESTA RIGA per consentire l'invio standard!
 
+        //Spostato dopo l'invio standard
+        //form.style.display = 'none';  // Nascondi il form
+        //grazieDiv.style.display = 'block'; // Mostra il messaggio di ringraziamento
 
-        //Il submit del form ora avviene in modo *standard* (senza JS)
+        //Il submit del form ora avviene in modo *standard* (senza JS).
+        // La pagina si ricaricherà.
     });
+
 
     </script>
 
