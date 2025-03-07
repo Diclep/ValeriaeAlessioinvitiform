@@ -11,8 +11,34 @@
         #componentiContainer { margin-top: 15px; }
         .componente { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
         button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-        button[type="submit"]:disabled { background-color: #cccccc; cursor: not-allowed; }
-        #messaggioInvio { margin-top: 10px; padding: 10px; background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; display: none; }
+
+        /* Contenitore per il pulsante e il messaggio (nuovo) */
+        #submitContainer {
+            position: relative; /* Importante per il posizionamento assoluto */
+            display: inline-block; /* Permette di centrare il contenuto */
+        }
+        #submitButton {
+             /* Rimuovi lo stile per :disabled */
+        }
+
+        /* Messaggio di ringraziamento */
+        #grazie {
+            margin-top: 10px;
+            padding: 10px;
+            display: none; /* Inizialmente nascosto */
+            text-align: center; /* Centra il testo */
+            font-size: 1.2em;
+            color: #28a745; /* Verde, come il pulsante originale */
+            position: absolute; /* Sovrapponi al pulsante */
+            top: 0;
+            left: 0;
+            width: 100%; /* Occupa lo spazio del pulsante */
+        }
+        /* Nascondi il messaggio di invio, non serve piu' */
+        #messaggioInvio{
+            display: none;
+        }
+
     </style>
 </head>
 <body>
@@ -39,8 +65,10 @@
 
         <div id="componentiContainer"></div>
 
-        <button type="submit" id="submitButton">Invia Iscrizione</button>
-        <div id="messaggioInvio">Risposta Inviata!</div>
+        <div id="submitContainer">
+            <button type="submit" id="submitButton">Invia Iscrizione</button>
+            <div id="grazie">Grazie per la registrazione!</div>
+        </div>
     </form>
 
     <script>
@@ -48,11 +76,14 @@
         const componentiContainer = document.getElementById('componentiContainer');
         const form = document.getElementById('iscrizioneForm');
         const submitButton = document.getElementById('submitButton');
-        const messaggioInvio = document.getElementById('messaggioInvio');
+        const grazieDiv = document.getElementById('grazie'); // Riferimento al messaggio
+        const submitContainer = document.getElementById('submitContainer');
 
+
+        // Funzione per la generazione dei campi dinamici (rimane invariata)
         numComponentiSelect.addEventListener('change', function() {
-            const numComponenti = parseInt(this.value);
-            componentiContainer.innerHTML = ''; // Pulisci
+           const numComponenti = parseInt(this.value);
+            componentiContainer.innerHTML = ''; // Pulisci i campi precedenti
 
             for (let i = 1; i <= numComponenti; i++) {
                 const componenteDiv = document.createElement('div');
@@ -109,17 +140,35 @@
             }
         });
 
+
+        // Gestione dell'invio del form
         form.addEventListener("submit", function(event) {
             event.preventDefault();
 
+            // 1. VALIDAZIONE (puoi spostarla in una funzione separata se vuoi)
             const formData = new FormData(form);
-            const data = {};
+             const data = {};
             for (const [key, value] of formData.entries()) {
                 data[key] = value;
             }
+            if (!data.nome || !data.cognome || !data.email || !data.numComponenti) {
+                alert("Per favore, compila tutti i campi obbligatori principali.");
+                return; // Esci se la validazione fallisce
+            }
+            const numComponenti = parseInt(data.numComponenti);
+            for (let i = 1; i <= numComponenti; i++) {
+                if (numComponenti > 1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
+                    alert(`Per favore, compila nome e cognome per il componente ${i}.`);
+                    return;
+                }
+                if (!data[`menuComponente${i}`] || !data[`regimeComponente${i}`]) {
+                    alert(`Per favore, seleziona menù e regime alimentare per il componente ${i}.`);
+                    return;
+                }
+            }
 
-            // Invio dati
-            fetch('https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec', {
+            // 2. INVIO (con fetch())
+            fetch('https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec', {  // <-- URL!
                 method: 'POST',
                 body: formData,
             })
@@ -132,14 +181,14 @@
             .then(data => {
                 console.log('Success:', data);
                 if (data.result === 'success') {
-                    // Mostra il messaggio e disabilita il pulsante
-                    messaggioInvio.style.display = 'block';
-                    submitButton.disabled = true;
-                    submitButton.style.cursor = 'not-allowed';
+                    // 3.  SUCCESSO: Nascondi pulsante, mostra messaggio
+                    submitButton.style.display = 'none'; // Nascondi il pulsante
+                    grazieDiv.style.display = 'block';   // Mostra il messaggio
 
-                    // Resetta il form e svuota il container
+                    // Resetta il form e svuota i campi dinamici
                     form.reset();
                     componentiContainer.innerHTML = "";
+
                 } else {
                     alert("Errore nell'invio: " + data.error);
                 }
@@ -149,6 +198,7 @@
                 alert("Errore nell'invio dei dati: " + error.message);
             });
         });
+
     </script>
 
 </body>
