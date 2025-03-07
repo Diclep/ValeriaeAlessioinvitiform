@@ -10,30 +10,27 @@
         input[type="text"], input[type="email"], select { width: 100%; padding: 5px; margin-bottom: 5px; box-sizing: border-box; }
         #componentiContainer { margin-top: 15px; }
         .componente { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
-        /* Contenitore per pulsante e messaggio */
-        #submitContainer {
-            position: relative;
-            display: inline-block;
-        }
         button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
 
         /* Messaggio di ringraziamento */
         #grazie {
-            margin-top: 10px; /*  Spazio sopra, se necessario */
-            padding: 10px;
-            display: none;  /* Nascosto all'inizio */
+            margin-top: 20px;
+            padding: 20px;
+            border: 2px solid #28a745;
+            background-color: #f8f9fa;
             text-align: center;
             font-size: 1.2em;
             color: #28a745;
-            position: absolute; /* Sovrapposto al pulsante */
-            top: 0;
-            left: 0;
-            width: 100%;
-            box-sizing: border-box; /* Importante per il padding */
+            display: none; /* Inizialmente nascosto */
         }
+        #grazie h2{
+          color:#28a745;
+        }
+        /* Nascondi il messaggio di invio, non serve piu' */
         #messaggioInvio{
             display: none;
         }
+
     </style>
 </head>
 <body>
@@ -59,139 +56,122 @@
         </select>
 
         <div id="componentiContainer"></div>
-          <div id="submitContainer">
-            <button type="submit" id="submitButton">Invia Iscrizione</button>
-            <div id="grazie">Grazie per la registrazione!</div>
-        </div>
+
+        <button type="submit" id="submitButton">Invia Iscrizione</button>
 
     </form>
-
-
+     <div id="grazie" style="display: none;">
+        <h2>Grazie per la tua partecipazione!</h2>
+    </div>
 
     <script>
-        const numComponentiSelect = document.getElementById('numComponenti');
-        const componentiContainer = document.getElementById('componentiContainer');
-        const form = document.getElementById('iscrizioneForm');
-        const submitButton = document.getElementById('submitButton');
-        const grazieDiv = document.getElementById('grazie');
-        const submitContainer = document.getElementById('submitContainer');
+      const numComponentiSelect = document.getElementById('numComponenti');
+    const componentiContainer = document.getElementById('componentiContainer');
+    const form = document.getElementById('iscrizioneForm');
+    const submitButton = document.getElementById('submitButton'); //più necessario, ma lo teniamo per validazione
+  //  const messaggioInvio = document.getElementById('messaggioInvio');//più necessario
+    const grazieDiv = document.getElementById('grazie');
 
 
-        // Generazione dinamica dei campi (rimane invariata)
-        numComponentiSelect.addEventListener('change', function() {
-            const numComponenti = parseInt(this.value);
-            componentiContainer.innerHTML = ''; // Pulisci
+    //Generazione campi dinamica
+    numComponentiSelect.addEventListener('change', function() {
+        const numComponenti = parseInt(this.value);
+        componentiContainer.innerHTML = ''; // Pulisci
 
-            for (let i = 1; i <= numComponenti; i++) {
-              const componenteDiv = document.createElement('div');
-                componenteDiv.classList.add('componente');
+        for (let i = 1; i <= numComponenti; i++) {
+            const componenteDiv = document.createElement('div');
+            componenteDiv.classList.add('componente');
 
-                let componenteHTML = `<h3>Componente ${i}</h3>`;
+            let componenteHTML = `<h3>Componente ${i}</h3>`;
 
-                // Nome e Cognome: Solo per componenti > 1
-                if (i > 1) {
-                    componenteHTML += `
-                        <label for="nomeComponente${i}">Nome Componente ${i}:</label>
-                        <input type="text" id="nomeComponente${i}" name="nomeComponente${i}" required>
-
-                        <label for="cognomeComponente${i}">Cognome Componente ${i}:</label>
-                        <input type="text" id="cognomeComponente${i}" name="cognomeComponente${i}" required>
-                    `;
-                }
-
-                // Menu a tendina "Scegli Menù"
+            // Nome e Cognome: Solo per componenti > 1
+            if (i > 1) {
                 componenteHTML += `
-                    <label for="menuComponente${i}">Scegli Menù:</label>
-                    <select id="menuComponente${i}" name="menuComponente${i}" required>
-                        <option value="" disabled selected>Seleziona...</option>
-                        <option value="adulto">Menù Adulti</option>
-                        <option value="bambino">Menù Bambino</option>
-                        <option value="solo_sedia">Solo sedia (no pranzo)</option>
-                        <option value="seggiolone">Seggiolone (no pranzo)</option>
-                        <option value="neonato">Neonato &lt; 1 anno</option>
-                    </select>
+                    <label for="nomeComponente${i}">Nome Componente ${i}:</label>
+                    <input type="text" id="nomeComponente${i}" name="nomeComponente${i}" required>
+
+                    <label for="cognomeComponente${i}">Cognome Componente ${i}:</label>
+                    <input type="text" id="cognomeComponente${i}" name="cognomeComponente${i}" required>
                 `;
-
-                // Menu a tendina "Regime Alimentare"
-                componenteHTML += `
-                    <label for="regimeComponente${i}">Regime Alimentare:</label>
-                    <select id="regimeComponente${i}" name="regimeComponente${i}" required>
-                        <option value="" disabled selected>Seleziona...</option>
-                        <option value="tutto">Tutto</option>
-                        <option value="vegetariano">Vegetariano</option>
-                        <option value="vegano">Vegano</option>
-                        <option value="no_pesce">No pesce</option>
-                        <option value="no_lattosio">No lattosio</option>
-                        <option value="no_glutine">No glutine</option>
-                    </select>
-                `;
-
-                // Textbox facoltativa "Allergie"
-                componenteHTML += `
-                    <label for="allergieComponente${i}">Indicare eventuali allergie (facoltativo):</label>
-                    <input type="text" id="allergieComponente${i}" name="allergieComponente${i}">
-                `;
-
-                componenteDiv.innerHTML = componenteHTML;
-                componentiContainer.appendChild(componenteDiv);
-            }
-        });
-
-
-        form.addEventListener("submit", function(event) {
-            event.preventDefault(); // *MANTIENI* preventDefault per la validazione
-
-            // 1. VALIDAZIONE (funzione separata per chiarezza)
-            if (!validaForm()) {
-                return; // Esci se la validazione fallisce
             }
 
-            // 2. SE LA VALIDAZIONE HA SUCCESSO:
+            // Menu a tendina "Scegli Menù"
+            componenteHTML += `
+                <label for="menuComponente${i}">Scegli Menù:</label>
+                <select id="menuComponente${i}" name="menuComponente${i}" required>
+                    <option value="" disabled selected>Seleziona...</option>
+                    <option value="adulto">Menù Adulti</option>
+                    <option value="bambino">Menù Bambino</option>
+                    <option value="solo_sedia">Solo sedia (no pranzo)</option>
+                    <option value="seggiolone">Seggiolone (no pranzo)</option>
+                    <option value="neonato">Neonato &lt; 1 anno</option>
+                </select>
+            `;
 
-            // 2.A.  Nascondi il pulsante, mostra il messaggio
-            submitButton.style.display = 'none';
-            grazieDiv.style.display = 'block';
+            // Menu a tendina "Regime Alimentare"
+            componenteHTML += `
+                <label for="regimeComponente${i}">Regime Alimentare:</label>
+                <select id="regimeComponente${i}" name="regimeComponente${i}" required>
+                    <option value="" disabled selected>Seleziona...</option>
+                    <option value="tutto">Tutto</option>
+                    <option value="vegetariano">Vegetariano</option>
+                    <option value="vegano">Vegano</option>
+                    <option value="no_pesce">No pesce</option>
+                    <option value="no_lattosio">No lattosio</option>
+                    <option value="no_glutine">No glutine</option>
+                </select>
+            `;
 
+            // Textbox facoltativa "Allergie"
+            componenteHTML += `
+                <label for="allergieComponente${i}">Indicare eventuali allergie (facoltativo):</label>
+                <input type="text" id="allergieComponente${i}" name="allergieComponente${i}">
+            `;
 
-            // 2.B. Invio dei dati (tramite fetch(), *DOPO* aver gestito l'UI)
-             const formData = new FormData(form);
-            fetch('https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec', {  // <-- URL!
-                method: 'POST',
-                body: formData,
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`Errore HTTP: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                console.log('Success:', data);
-                if (data.result === 'success') {
-                    //  Il form viene resettato *SOLO* in caso di successo.
+            componenteDiv.innerHTML = componenteHTML;
+            componentiContainer.appendChild(componenteDiv);
+        }
+    });
 
-                    form.reset();
-                    componentiContainer.innerHTML = "";
+      form.addEventListener("submit", function(event) {
+        event.preventDefault();
 
+        // VALIDAZIONE
+        if (!validaForm()) {
+            return;
+        }
 
-                } else {
-                    alert("Errore nell'invio al server: " + data.error + ".  I dati *NON* sono stati salvati. Ricarica la pagina e riprova.");
-                      // Rimetti visibile il pulsante in caso di errore
-                      submitButton.style.display = 'inline-block';
-                      grazieDiv.style.display = 'none';
-                }
-            })
-            .catch((error) => {
-                console.error('Error:', error);
-                alert("Errore nell'invio dei dati: " + error.message + ".  I dati *NON* sono stati salvati. Ricarica la pagina e riprova.");
-                 // Rimetti visibile il pulsante in caso di errore
-                  submitButton.style.display = 'inline-block';
-                  grazieDiv.style.display = 'none';
-            });
+        // INVIO (con fetch())
+        fetch('https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec', {
+            method: 'POST',
+            body: formData,
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Errore HTTP: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log('Success:', data);
+            if (data.result === 'success') {
+                // NASCONDI *IL FORM* E MOSTRA IL MESSAGGIO
+                form.style.display = 'none';
+                grazieDiv.style.display = 'block';
+
+                // Non resettare e non svuotare nulla!
+
+            } else {
+                alert("Errore nell'invio: " + data.error);
+            }
+        })
+        .catch((error) => {
+            console.error('Error:', error);
+            alert("Errore nell'invio dei dati: " + error.message);
         });
+    });
 
-
-        // Funzione di validazione (separata per chiarezza)
+     // Funzione di validazione (separata)
         function validaForm() {
             const formData = new FormData(form);
             const data = {};
