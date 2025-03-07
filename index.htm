@@ -10,40 +10,35 @@
         input[type="text"], input[type="email"], select { width: 100%; padding: 5px; margin-bottom: 5px; box-sizing: border-box; }
         #componentiContainer { margin-top: 15px; }
         .componente { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
-        button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
-
-        /* Contenitore per il pulsante e il messaggio (nuovo) */
+        /* Contenitore per pulsante e messaggio */
         #submitContainer {
-            position: relative; /* Importante per il posizionamento assoluto */
-            display: inline-block; /* Permette di centrare il contenuto */
+            position: relative;
+            display: inline-block;
         }
-        #submitButton {
-             /* Rimuovi lo stile per :disabled */
-        }
+        button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
 
         /* Messaggio di ringraziamento */
         #grazie {
-            margin-top: 10px;
+            margin-top: 10px; /*  Spazio sopra, se necessario */
             padding: 10px;
-            display: none; /* Inizialmente nascosto */
-            text-align: center; /* Centra il testo */
+            display: none;  /* Nascosto all'inizio */
+            text-align: center;
             font-size: 1.2em;
-            color: #28a745; /* Verde, come il pulsante originale */
-            position: absolute; /* Sovrapponi al pulsante */
+            color: #28a745;
+            position: absolute; /* Sovrapposto al pulsante */
             top: 0;
             left: 0;
-            width: 100%; /* Occupa lo spazio del pulsante */
+            width: 100%;
+            box-sizing: border-box; /* Importante per il padding */
         }
-        /* Nascondi il messaggio di invio, non serve piu' */
         #messaggioInvio{
             display: none;
         }
-
     </style>
 </head>
 <body>
 
-    <form id="iscrizioneForm" action="#" method="post">
+    <form id="iscrizioneForm" action="https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec" method="POST">
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
 
@@ -64,29 +59,31 @@
         </select>
 
         <div id="componentiContainer"></div>
-
-        <div id="submitContainer">
+          <div id="submitContainer">
             <button type="submit" id="submitButton">Invia Iscrizione</button>
             <div id="grazie">Grazie per la registrazione!</div>
         </div>
+
     </form>
+
+
 
     <script>
         const numComponentiSelect = document.getElementById('numComponenti');
         const componentiContainer = document.getElementById('componentiContainer');
         const form = document.getElementById('iscrizioneForm');
         const submitButton = document.getElementById('submitButton');
-        const grazieDiv = document.getElementById('grazie'); // Riferimento al messaggio
+        const grazieDiv = document.getElementById('grazie');
         const submitContainer = document.getElementById('submitContainer');
 
 
-        // Funzione per la generazione dei campi dinamici (rimane invariata)
+        // Generazione dinamica dei campi (rimane invariata)
         numComponentiSelect.addEventListener('change', function() {
-           const numComponenti = parseInt(this.value);
-            componentiContainer.innerHTML = ''; // Pulisci i campi precedenti
+            const numComponenti = parseInt(this.value);
+            componentiContainer.innerHTML = ''; // Pulisci
 
             for (let i = 1; i <= numComponenti; i++) {
-                const componenteDiv = document.createElement('div');
+              const componenteDiv = document.createElement('div');
                 componenteDiv.classList.add('componente');
 
                 let componenteHTML = `<h3>Componente ${i}</h3>`;
@@ -141,33 +138,23 @@
         });
 
 
-        // Gestione dell'invio del form
         form.addEventListener("submit", function(event) {
-            event.preventDefault();
+            event.preventDefault(); // *MANTIENI* preventDefault per la validazione
 
-            // 1. VALIDAZIONE (puoi spostarla in una funzione separata se vuoi)
-            const formData = new FormData(form);
-             const data = {};
-            for (const [key, value] of formData.entries()) {
-                data[key] = value;
-            }
-            if (!data.nome || !data.cognome || !data.email || !data.numComponenti) {
-                alert("Per favore, compila tutti i campi obbligatori principali.");
+            // 1. VALIDAZIONE (funzione separata per chiarezza)
+            if (!validaForm()) {
                 return; // Esci se la validazione fallisce
             }
-            const numComponenti = parseInt(data.numComponenti);
-            for (let i = 1; i <= numComponenti; i++) {
-                if (numComponenti > 1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
-                    alert(`Per favore, compila nome e cognome per il componente ${i}.`);
-                    return;
-                }
-                if (!data[`menuComponente${i}`] || !data[`regimeComponente${i}`]) {
-                    alert(`Per favore, seleziona menù e regime alimentare per il componente ${i}.`);
-                    return;
-                }
-            }
 
-            // 2. INVIO (con fetch())
+            // 2. SE LA VALIDAZIONE HA SUCCESSO:
+
+            // 2.A.  Nascondi il pulsante, mostra il messaggio
+            submitButton.style.display = 'none';
+            grazieDiv.style.display = 'block';
+
+
+            // 2.B. Invio dei dati (tramite fetch(), *DOPO* aver gestito l'UI)
+             const formData = new FormData(form);
             fetch('https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec', {  // <-- URL!
                 method: 'POST',
                 body: formData,
@@ -181,23 +168,59 @@
             .then(data => {
                 console.log('Success:', data);
                 if (data.result === 'success') {
-                    // 3.  SUCCESSO: Nascondi pulsante, mostra messaggio
-                    submitButton.style.display = 'none'; // Nascondi il pulsante
-                    grazieDiv.style.display = 'block';   // Mostra il messaggio
+                    //  Il form viene resettato *SOLO* in caso di successo.
 
-                    // Resetta il form e svuota i campi dinamici
                     form.reset();
                     componentiContainer.innerHTML = "";
 
+
                 } else {
-                    alert("Errore nell'invio: " + data.error);
+                    alert("Errore nell'invio al server: " + data.error + ".  I dati *NON* sono stati salvati. Ricarica la pagina e riprova.");
+                      // Rimetti visibile il pulsante in caso di errore
+                      submitButton.style.display = 'inline-block';
+                      grazieDiv.style.display = 'none';
                 }
             })
             .catch((error) => {
                 console.error('Error:', error);
-                alert("Errore nell'invio dei dati: " + error.message);
+                alert("Errore nell'invio dei dati: " + error.message + ".  I dati *NON* sono stati salvati. Ricarica la pagina e riprova.");
+                 // Rimetti visibile il pulsante in caso di errore
+                  submitButton.style.display = 'inline-block';
+                  grazieDiv.style.display = 'none';
             });
         });
+
+
+        // Funzione di validazione (separata per chiarezza)
+        function validaForm() {
+            const formData = new FormData(form);
+            const data = {};
+            for (const [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+
+            // Controlla i campi principali
+            if (!data.nome || !data.cognome || !data.email || !data.numComponenti) {
+                alert("Per favore, compila tutti i campi obbligatori principali.");
+                return false; // Validazione fallita
+            }
+
+            const numComponenti = parseInt(data.numComponenti);
+            for (let i = 1; i <= numComponenti; i++) {
+                // Controlla nome/cognome per componenti > 1
+                if (numComponenti > 1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
+                    alert(`Per favore, compila nome e cognome per il componente ${i}.`);
+                    return false;
+                }
+                // Controlla menu e regime per tutti i componenti
+                if (!data[`menuComponente${i}`] || !data[`regimeComponente${i}`]) {
+                    alert(`Per favore, seleziona menù e regime alimentare per il componente ${i}.`);
+                    return false;
+                }
+            }
+
+            return true; // Validazione riuscita
+        }
 
     </script>
 
