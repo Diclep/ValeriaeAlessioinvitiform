@@ -10,35 +10,28 @@
         input[type="text"], input[type="email"], select { width: 100%; padding: 5px; margin-bottom: 5px; box-sizing: border-box; }
         #componentiContainer { margin-top: 15px; }
         .componente { margin-bottom: 10px; padding: 10px; border: 1px solid #ddd; }
-        /* Contenitore per pulsante e messaggio */
-        #submitContainer {
-            position: relative;
-            display: inline-block;
-        }
         button[type="submit"] { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
 
         /* Messaggio di ringraziamento */
         #grazie {
-            margin-top: 10px; /*  Spazio sopra, se necessario */
-            padding: 10px;
-            display: none;  /* Nascosto all'inizio */
+            margin-top: 20px; /* Aggiunto margine superiore */
+            padding: 20px;
+            border: 2px solid #28a745; /* Bordo per evidenziare */
+            background-color: #f8f9fa; /* Sfondo leggero */
             text-align: center;
             font-size: 1.2em;
             color: #28a745;
-            position: absolute; /* Sovrapposto al pulsante */
-            top: 0;
-            left: 0;
-            width: 100%;
-            box-sizing: border-box; /* Importante per il padding */
+            display: none; /* Nascosto all'inizio */
         }
-        #messaggioInvio{
-            display: none;
+        #grazie h2{
+          color:#28a745;
         }
+
     </style>
 </head>
 <body>
 
-    <form id="iscrizioneForm" action="https://script.google.com/macros/s/AKfycbyZbbjW-3wGtYZYYZ2FlNkiu52kSH33s8AdN9fMOGJU5oG87LIM7wxWZiPv8y4w5Nvpaw/exec" method="POST">
+    <form id="iscrizioneForm" action="#" method="POST">
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
 
@@ -59,14 +52,13 @@
         </select>
 
         <div id="componentiContainer"></div>
-          <div id="submitContainer">
-            <button type="submit" id="submitButton">Invia Iscrizione</button>
-            <div id="grazie">Grazie per la registrazione!</div>
-        </div>
 
+        <button type="submit" id="submitButton">Invia Iscrizione</button>
     </form>
 
-
+    <div id="grazie">
+        <h2>Grazie per la tua partecipazione!</h2>
+    </div>
 
     <script>
         const numComponentiSelect = document.getElementById('numComponenti');
@@ -74,16 +66,14 @@
         const form = document.getElementById('iscrizioneForm');
         const submitButton = document.getElementById('submitButton');
         const grazieDiv = document.getElementById('grazie');
-        const submitContainer = document.getElementById('submitContainer');
-
 
         // Generazione dinamica dei campi (rimane invariata)
         numComponentiSelect.addEventListener('change', function() {
             const numComponenti = parseInt(this.value);
-            componentiContainer.innerHTML = ''; // Pulisci
+            componentiContainer.innerHTML = ''; // Pulisci i campi precedenti
 
             for (let i = 1; i <= numComponenti; i++) {
-              const componenteDiv = document.createElement('div');
+                const componenteDiv = document.createElement('div');
                 componenteDiv.classList.add('componente');
 
                 let componenteHTML = `<h3>Componente ${i}</h3>`;
@@ -137,25 +127,22 @@
             }
         });
 
-
+        // Gestione dell'invio del form
         form.addEventListener("submit", function(event) {
-            event.preventDefault(); // *MANTIENI* preventDefault per la validazione
+            event.preventDefault(); // Impedisce l'invio *standard* del form
 
-            // 1. VALIDAZIONE (funzione separata per chiarezza)
+            // 1. VALIDAZIONE (lato client)
             if (!validaForm()) {
-                return; // Esci se la validazione fallisce
+                return; // Se la validazione fallisce, esci
             }
 
-            // 2. SE LA VALIDAZIONE HA SUCCESSO:
-
-            // 2.A.  Nascondi il pulsante, mostra il messaggio
-            submitButton.style.display = 'none';
+            // 2. NASCONDI IL FORM E MOSTRA IL MESSAGGIO *PRIMA* DELL'INVIO
+            form.style.display = 'none';
             grazieDiv.style.display = 'block';
 
-
-            // 2.B. Invio dei dati (tramite fetch(), *DOPO* aver gestito l'UI)
-             const formData = new FormData(form);
-            fetch('INCOLLA_QUI_L_URL_DELLA_TUA_APP_WEB/exec', {  // <-- URL!
+            // 3. INVIO DEI DATI (con fetch())
+            const formData = new FormData(form);
+            fetch('https://script.google.com/macros/s/AKfycbyZbbjW-3wGtYZYYZ2FlNkiu52kSH33s8AdN9fMOGJU5oG87LIM7wxWZiPv8y4w5Nvpaw/exec', { // <-- URL CORRETTO!
                 method: 'POST',
                 body: formData,
             })
@@ -167,29 +154,15 @@
             })
             .then(data => {
                 console.log('Success:', data);
-                if (data.result === 'success') {
-                    //  Il form viene resettato *SOLO* in caso di successo.
-
-                    form.reset();
-                    componentiContainer.innerHTML = "";
-
-
-                } else {
-                    alert("Errore nell'invio al server: " + data.error + ".  I dati *NON* sono stati salvati. Ricarica la pagina e riprova.");
-                      // Rimetti visibile il pulsante in caso di errore
-                      submitButton.style.display = 'inline-block';
-                      grazieDiv.style.display = 'none';
+                if (data.result !== 'success') {
+                      alert("Errore nell'invio al server: " + data.error + ".  I dati *NON* sono stati salvati.");
                 }
             })
             .catch((error) => {
                 console.error('Error:', error);
-                alert("Errore nell'invio dei dati: " + error.message + ".  I dati *NON* sono stati salvati. Ricarica la pagina e riprova.");
-                 // Rimetti visibile il pulsante in caso di errore
-                  submitButton.style.display = 'inline-block';
-                  grazieDiv.style.display = 'none';
+                alert("Errore nell'invio dei dati: " + error.message + ". I dati *NON* sono stati salvati.");
             });
         });
-
 
         // Funzione di validazione (separata per chiarezza)
         function validaForm() {
@@ -202,7 +175,7 @@
             // Controlla i campi principali
             if (!data.nome || !data.cognome || !data.email || !data.numComponenti) {
                 alert("Per favore, compila tutti i campi obbligatori principali.");
-                return false; // Validazione fallita
+                return false;
             }
 
             const numComponenti = parseInt(data.numComponenti);
