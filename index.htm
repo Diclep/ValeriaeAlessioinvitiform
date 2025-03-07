@@ -35,7 +35,7 @@
 </head>
 <body>
 
-    <form id="iscrizioneForm" action="https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec" method="POST">
+    <form id="iscrizioneForm" action="INCOLLA_QUI_L_URL_DELLA_TUA_APP_WEB/exec" method="POST">
         <label for="nome">Nome:</label>
         <input type="text" id="nome" name="nome" required>
 
@@ -50,7 +50,7 @@
             <option value="" disabled selected>Seleziona...</option>
             <script>
                 for (let i = 1; i <= 15; i++) {
-                    document.write(`<option value="${i}">${i}</option>`);
+                    document.write(`<option value="<span class="math-inline">\{i\}"\></span>{i}</option>`);
                 }
             </script>
         </select>
@@ -87,11 +87,11 @@
             // Nome e Cognome: Solo per componenti > 1
             if (i > 1) {
                 componenteHTML += `
-                    <label for="nomeComponente${i}">Nome Componente ${i}:</label>
-                    <input type="text" id="nomeComponente${i}" name="nomeComponente${i}" required>
+                    <label for="nomeComponente${i}">Nome Componente <span class="math-inline">\{i\}\:</label\>
+<input type\="text" id\="nomeComponente</span>{i}" name="nomeComponente${i}" required>
 
-                    <label for="cognomeComponente${i}">Cognome Componente ${i}:</label>
-                    <input type="text" id="cognomeComponente${i}" name="cognomeComponente${i}" required>
+                    <label for="cognomeComponente${i}">Cognome Componente <span class="math-inline">\{i\}\:</label\>
+<input type\="text" id\="cognomeComponente</span>{i}" name="cognomeComponente${i}" required>
                 `;
             }
 
@@ -133,7 +133,7 @@
         }
     });
 
-      form.addEventListener("submit", function(event) {
+     form.addEventListener("submit", function(event) {
         event.preventDefault();
 
         // VALIDAZIONE
@@ -142,7 +142,12 @@
         }
 
         // INVIO (con fetch())
-        fetch('https://script.google.com/macros/s/AKfycbyy08WavdXx5n0_dMSQkoSgZX3ao3NdR2ZTRbGUV8hfKoZsVcKFOProSqn3aL6zvV17dg/exec', {
+         const formData = new FormData(form);
+         const data = {};
+            for (const [key, value] of formData.entries()) {
+                data[key] = value;
+            }
+        fetch('INCOLLA_QUI_L_URL_DELLA_TUA_APP_WEB/exec', {
             method: 'POST',
             body: formData,
         })
@@ -173,36 +178,11 @@
 
      // Funzione di validazione (separata)
         function validaForm() {
-            const formData = new FormData(form);
+           const formData = new FormData(form);
             const data = {};
             for (const [key, value] of formData.entries()) {
                 data[key] = value;
             }
 
             // Controlla i campi principali
-            if (!data.nome || !data.cognome || !data.email || !data.numComponenti) {
-                alert("Per favore, compila tutti i campi obbligatori principali.");
-                return false; // Validazione fallita
-            }
-
-            const numComponenti = parseInt(data.numComponenti);
-            for (let i = 1; i <= numComponenti; i++) {
-                // Controlla nome/cognome per componenti > 1
-                if (numComponenti > 1 && (!data[`nomeComponente${i}`] || !data[`cognomeComponente${i}`])) {
-                    alert(`Per favore, compila nome e cognome per il componente ${i}.`);
-                    return false;
-                }
-                // Controlla menu e regime per tutti i componenti
-                if (!data[`menuComponente${i}`] || !data[`regimeComponente${i}`]) {
-                    alert(`Per favore, seleziona menù e regime alimentare per il componente ${i}.`);
-                    return false;
-                }
-            }
-
-            return true; // Validazione riuscita
-        }
-
-    </script>
-
-</body>
-</html>
+            if (!data.nome || !data.cognome || !data.email || !data.numComponenti
